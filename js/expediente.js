@@ -27,7 +27,7 @@ async function loadExpediente() {
 async function toggleExpediente() {
     if (expedienteAberto) {
         // Fechar
-        const { data: expediente } = await supabase
+        const { data: expediente } = await db
             .from('expediente')
             .select('*')
             .is('fechado_em', null)
@@ -38,7 +38,7 @@ async function toggleExpediente() {
             const abertoEm = new Date(expediente.aberto_em);
             const duracao = Math.floor((fechadoEm - abertoEm) / 1000 / 60);
             
-            await supabase
+            await db
                 .from('expediente')
                 .update({
                     fechado_por: currentUser.nome,
@@ -51,7 +51,7 @@ async function toggleExpediente() {
         expedienteAberto = false;
     } else {
         // Abrir
-        await supabase
+        await db
             .from('expediente')
             .insert([{
                 aberto_por: currentUser.nome,
@@ -65,7 +65,7 @@ async function toggleExpediente() {
 }
 
 async function loadExpedienteHistorico() {
-    const { data: historico } = await supabase
+    const { data: historico } = await db
         .from('expediente')
         .select('*')
         .order('aberto_em', { ascending: false })

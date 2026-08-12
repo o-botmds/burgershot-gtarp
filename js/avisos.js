@@ -42,7 +42,7 @@ async function loadAvisos() {
 }
 
 async function loadAvisosLista() {
-    const { data: avisos } = await supabase
+    const { data: avisos } = await db
         .from('avisos')
         .select('*')
         .order('created_at', { ascending: false });
@@ -71,7 +71,7 @@ async function handleAvisoSubmit(e) {
     const mensagem = document.getElementById('avisoMensagem').value;
     const prioridade = document.getElementById('avisoPrioridade').value;
     
-    const { error } = await supabase
+    const { error } = await db
         .from('avisos')
         .insert([{
             titulo,

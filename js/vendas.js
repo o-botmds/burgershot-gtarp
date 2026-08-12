@@ -47,7 +47,7 @@ async function loadVendas() {
 }
 
 async function loadVendasRecentes() {
-    const { data: vendas } = await supabase
+    const { data: vendas } = await db
         .from('vendas')
         .select('*')
         .order('created_at', { ascending: false })
@@ -76,7 +76,7 @@ async function handleVendaSubmit(e) {
     const quantidade = document.getElementById('vendaQuantidade').value;
     const valor = document.getElementById('vendaValor').value;
     
-    const { error } = await supabase
+    const { error } = await db
         .from('vendas')
         .insert([{
             cliente,
@@ -92,7 +92,7 @@ async function handleVendaSubmit(e) {
         return;
     }
     
-    await supabase.from('atividades').insert([{
+    await db.from('atividades').insert([{
         usuario: currentUser.nome,
         acao: `Registrou venda para ${cliente}`
     }]);

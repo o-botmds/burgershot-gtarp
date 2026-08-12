@@ -61,7 +61,7 @@ async function loadEstoque() {
 }
 
 async function loadEstoqueAtual() {
-    const { data: estoque } = await supabase
+    const { data: estoque } = await db
         .from('estoque')
         .select('*');
     
@@ -80,7 +80,7 @@ async function loadEstoqueAtual() {
 }
 
 async function loadEstoqueHistorico() {
-    const { data: historico } = await supabase
+    const { data: historico } = await db
         .from('movimentacoes_estoque')
         .select('*')
         .order('created_at', { ascending: false })
@@ -108,7 +108,7 @@ async function handleEstoqueSubmit(e) {
     const quantidade = parseInt(document.getElementById('estoqueQuantidade').value);
     const observacao = document.getElementById('estoqueObservacao').value;
     
-    const { data: itemAtual } = await supabase
+    const { data: itemAtual } = await db
         .from('estoque')
         .select('quantidade')
         .eq('item', item)
@@ -126,17 +126,17 @@ async function handleEstoqueSubmit(e) {
             return;
         }
         
-        await supabase
+        await db
             .from('estoque')
             .update({ quantidade: novaQuantidade })
             .eq('item', item);
     } else {
-        await supabase
+        await db
             .from('estoque')
             .insert([{ item, quantidade: novaQuantidade }]);
     }
     
-    await supabase
+    await db
         .from('movimentacoes_estoque')
         .insert([{
             tipo,

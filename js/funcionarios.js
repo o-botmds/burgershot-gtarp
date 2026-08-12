@@ -45,7 +45,7 @@ async function loadFuncionarios() {
 }
 
 async function loadFuncionariosLista() {
-    const { data: funcionarios } = await supabase
+    const { data: funcionarios } = await db
         .from('funcionarios')
         .select('*')
         .order('created_at', { ascending: false });
@@ -73,7 +73,7 @@ async function handleFuncionarioSubmit(e) {
     const email = document.getElementById('funcionarioEmail').value;
     const cargo = document.getElementById('funcionarioCargo').value;
     
-    const { error } = await supabase
+    const { error } = await db
         .from('funcionarios')
         .insert([{
             nome,

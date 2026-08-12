@@ -48,7 +48,7 @@ async function loadMetas() {
 }
 
 async function loadMetasLista() {
-    const { data: metas } = await supabase
+    const { data: metas } = await db
         .from('metas')
         .select('*')
         .order('created_at', { ascending: false });
@@ -79,15 +79,15 @@ async function handleMetaSubmit(e) {
     
     if (printFile) {
         const fileName = `metas/${Date.now()}_${printFile.name}`;
-        const { data: uploadData, error: uploadError } = await supabase.storage
+        const { data: uploadData, error: uploadError } = await db.storage
             .from('prints')
             .upload(fileName, printFile);
         
         if (uploadError) throw uploadError;
-        printUrl = `${SUPABASE_URL}/storage/v1/object/public/prints/${fileName}`;
+        printUrl = `${db_URL}/storage/v1/object/public/prints/${fileName}`;
     }
     
-    const { error } = await supabase
+    const { error } = await db
         .from('metas')
         .insert([{
             tipo,
@@ -103,7 +103,7 @@ async function handleMetaSubmit(e) {
         return;
     }
     
-    await supabase.from('atividades').insert([{
+    await db.from('atividades').insert([{
         usuario: currentUser.nome,
         acao: `Enviou meta: ${quantidade} ${tipo}`
     }]);

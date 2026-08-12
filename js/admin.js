@@ -45,7 +45,7 @@ async function loadAdminPanel() {
 }
 
 async function loadSolicitacoesPendentes() {
-    const { data: pendentes } = await supabase
+    const { data: pendentes } = await db
         .from('funcionarios')
         .select('*')
         .eq('status', 'pendente')
@@ -77,7 +77,7 @@ async function loadSolicitacoesPendentes() {
 }
 
 async function loadAdminUsers() {
-    const { data: users } = await supabase
+    const { data: users } = await db
         .from('funcionarios')
         .select('*')
         .order('created_at', { ascending: false });
@@ -115,7 +115,7 @@ async function loadAdminUsers() {
 }
 
 async function loadAdminItems() {
-    const { data: items } = await supabase
+    const { data: items } = await db
         .from('estoque')
         .select('*');
     
@@ -130,10 +130,10 @@ async function loadAdminItems() {
 
 async function loadAdminStats() {
     const [funcionarios, vendas, estoque, metas] = await Promise.all([
-        supabase.from('funcionarios').select('id'),
-        supabase.from('vendas').select('id'),
-        supabase.from('estoque').select('id'),
-        supabase.from('metas').select('id')
+        db.from('funcionarios').select('id'),
+        db.from('vendas').select('id'),
+        db.from('estoque').select('id'),
+        db.from('metas').select('id')
     ]);
     
     document.getElementById('adminStats').innerHTML = `
@@ -161,12 +161,12 @@ async function loadAdminStats() {
 async function aprovarUsuario(userId) {
     const cargo = document.getElementById(`cargo_${userId}`).value;
     
-    await supabase
+    await db
         .from('funcionarios')
         .update({ status: 'ativo', cargo })
         .eq('id', userId);
     
-    await supabase.from('atividades').insert([{
+    await db.from('atividades').insert([{
         usuario: currentUser.nome,
         acao: `Aprovou usuário como ${cargo}`
     }]);
@@ -179,7 +179,7 @@ async function aprovarUsuario(userId) {
 async function rejeitarUsuario(userId) {
     if (!confirm('Tem certeza que deseja rejeitar este usuário?')) return;
     
-    await supabase
+    await db
         .from('funcionarios')
         .update({ status: 'rejeitado' })
         .eq('id', userId);
@@ -196,7 +196,7 @@ async function handleItemSubmit(e) {
     const emoji = document.getElementById('itemEmoji').value;
     const itemCompleto = emoji ? `${emoji} ${nome}` : nome;
     
-    await supabase
+    await db
         .from('estoque')
         .insert([{ item: itemCompleto, quantidade: 0 }]);
     

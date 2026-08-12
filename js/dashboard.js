@@ -170,7 +170,7 @@ async function loadAdminDashboard() {
 
 // Funções de carregamento
 async function loadMinhasVendasHoje() {
-    const { data: vendas } = await supabase
+    const { data: vendas } = await db
         .from('vendas')
         .select('valor_total')
         .eq('vendedor_id', currentUser.id)
@@ -183,7 +183,7 @@ async function loadMinhasVendasHoje() {
 }
 
 async function loadTotalVendasHoje() {
-    const { data: vendas } = await supabase
+    const { data: vendas } = await db
         .from('vendas')
         .select('valor_total')
         .gte('created_at', getToday());
@@ -195,7 +195,7 @@ async function loadTotalVendasHoje() {
 }
 
 async function loadVendasHoje() {
-    const { data: vendas } = await supabase
+    const { data: vendas } = await db
         .from('vendas')
         .select('valor_total')
         .gte('created_at', getToday());
@@ -207,7 +207,7 @@ async function loadVendasHoje() {
 }
 
 async function loadMetaDia() {
-    const { data: meta } = await supabase
+    const { data: meta } = await db
         .from('metas')
         .select('*')
         .eq('data', getToday())
@@ -219,7 +219,7 @@ async function loadMetaDia() {
 }
 
 async function loadFuncionariosAtivos() {
-    const { data: funcionarios } = await supabase
+    const { data: funcionarios } = await db
         .from('funcionarios')
         .select('id')
         .eq('status', 'ativo');
@@ -230,7 +230,7 @@ async function loadFuncionariosAtivos() {
 }
 
 async function loadItensEstoque() {
-    const { data: itens } = await supabase
+    const { data: itens } = await db
         .from('estoque')
         .select('quantidade');
     
@@ -241,7 +241,7 @@ async function loadItensEstoque() {
 }
 
 async function loadUsuariosPendentes() {
-    const { data: pendentes } = await supabase
+    const { data: pendentes } = await db
         .from('funcionarios')
         .select('id')
         .eq('status', 'pendente');
@@ -252,7 +252,7 @@ async function loadUsuariosPendentes() {
 }
 
 async function loadTotalFuncionarios() {
-    const { data: funcionarios } = await supabase
+    const { data: funcionarios } = await db
         .from('funcionarios')
         .select('id');
     
@@ -262,7 +262,7 @@ async function loadTotalFuncionarios() {
 }
 
 async function loadAcessosHoje() {
-    const { data: acessos } = await supabase
+    const { data: acessos } = await db
         .from('atividades')
         .select('id')
         .gte('created_at', getToday());
@@ -273,7 +273,7 @@ async function loadAcessosHoje() {
 }
 
 async function loadVendasPorFuncionario() {
-    const { data: vendas } = await supabase
+    const { data: vendas } = await db
         .from('vendas')
         .select('vendedor, valor_total')
         .gte('created_at', getToday());
@@ -297,7 +297,7 @@ async function loadVendasPorFuncionario() {
 }
 
 async function loadStatusEstoque() {
-    const { data: estoque } = await supabase
+    const { data: estoque } = await db
         .from('estoque')
         .select('*');
     
@@ -312,7 +312,7 @@ async function loadStatusEstoque() {
 }
 
 async function loadMetasAndamento() {
-    const { data: metas } = await supabase
+    const { data: metas } = await db
         .from('metas')
         .select('*')
         .eq('status', 'pendente');
@@ -328,7 +328,7 @@ async function loadMetasAndamento() {
 }
 
 async function loadExpedienteResumo() {
-    const { data: expediente } = await supabase
+    const { data: expediente } = await db
         .from('expediente')
         .select('*')
         .order('aberto_em', { ascending: false })
@@ -345,7 +345,7 @@ async function loadExpedienteResumo() {
 }
 
 async function loadAvisosRecentes() {
-    const { data: avisos } = await supabase
+    const { data: avisos } = await db
         .from('avisos')
         .select('*')
         .order('created_at', { ascending: false })
@@ -362,7 +362,7 @@ async function loadAvisosRecentes() {
 }
 
 async function loadResumoVendas() {
-    const { data: vendas } = await supabase
+    const { data: vendas } = await db
         .from('vendas')
         .select('*')
         .order('created_at', { ascending: false })
@@ -397,7 +397,7 @@ async function loadResumoVendas() {
 }
 
 async function loadDistribuicaoCargos() {
-    const { data: funcionarios } = await supabase
+    const { data: funcionarios } = await db
         .from('funcionarios')
         .select('cargo');
     
@@ -417,7 +417,7 @@ async function loadDistribuicaoCargos() {
 }
 
 async function loadAtividadesSistema() {
-    const { data: atividades } = await supabase
+    const { data: atividades } = await db
         .from('atividades')
         .select('*')
         .order('created_at', { ascending: false })
@@ -449,10 +449,10 @@ async function loadStatusSistema() {
 
 async function loadEstatisticasGerais() {
     const [vendas, estoque, funcionarios, metas] = await Promise.all([
-        supabase.from('vendas').select('id'),
-        supabase.from('estoque').select('id'),
-        supabase.from('funcionarios').select('id'),
-        supabase.from('metas').select('id')
+        db.from('vendas').select('id'),
+        db.from('estoque').select('id'),
+        db.from('funcionarios').select('id'),
+        db.from('metas').select('id')
     ]);
     
     document.getElementById('estatisticasGerais').innerHTML = `
