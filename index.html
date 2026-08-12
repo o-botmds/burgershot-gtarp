@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BurgerShot - Sistema de Controle</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Tela de Login -->
+    <div id="loginScreen" class="login-screen">
+        <div class="login-container">
+            <div class="logo">
+                <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🍔%3C/text%3E%3C/svg%3E" alt="BurgerShot Logo">
+                <h1>BurgerShot</h1>
+                <p>Sistema de Controle - GTARP</p>
+            </div>
+            <div id="errorMessage" class="error-message" style="display: none;"></div>
+            <form id="loginForm">
+                <input type="email" id="email" placeholder="Seu email" required>
+                <button type="submit">Solicitar Acesso</button>
+            </form>
+            <p class="info-text">Apenas emails aprovados por gerentes podem acessar</p>
+        </div>
+    </div>
+
+    <!-- Dashboard Principal -->
+    <div id="mainApp" class="main-app" style="display: none;">
+        <nav class="sidebar">
+            <div class="sidebar-header">
+                <h2>🍔 BurgerShot</h2>
+                <button onclick="logout()" class="logout-btn">Sair</button>
+            </div>
+            <ul class="nav-menu">
+                <li><button onclick="showSection('dashboard')" class="active">📊 Dashboard</button></li>
+                <li><button onclick="showSection('metas')">🎯 Metas</button></li>
+                <li><button onclick="showSection('estoque')">📦 Estoque</button></li>
+                <li><button onclick="showSection('vendas')">💰 Vendas</button></li>
+                <li><button onclick="showSection('avisos')">📢 Avisos</button></li>
+                <li><button onclick="showSection('funcionarios')">👥 Funcionários</button></li>
+                <li><button onclick="showSection('expediente')">⏰ Expediente</button></li>
+                <li id="adminMenu" style="display: none;"><button onclick="showSection('admin')">⚙️ Administração</button></li>
+            </ul>
+        </nav>
+
+        <main class="content">
+            <!-- Dashboard -->
+            <section id="dashboard" class="section active">
+                <h2>Dashboard</h2>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <h3>Vendas Hoje</h3>
+                        <p id="vendasHoje">R$ 0,00</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Meta do Dia</h3>
+                        <p id="metaDia">R$ 0,00</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Itens no Estoque</h3>
+                        <p id="itensEstoque">0</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Funcionários Ativos</h3>
+                        <p id="funcionariosAtivos">0</p>
+                    </div>
+                </div>
+                <div class="recent-activity">
+                    <h3>Atividades Recentes</h3>
+                    <div id="recentActivity"></div>
+                </div>
+            </section>
+
+            <!-- Metas -->
+            <section id="metas" class="section">
+                <h2>Controle de Metas</h2>
+                <div class="metas-container">
+                    <div class="meta-form" id="metaFormSection">
+                        <h3>Definir Nova Meta</h3>
+                        <form id="metaForm">
+                            <select id="metaTipo" required>
+                                <option value="carne">🥩 Carne</option>
+                                <option value="alface">🥬 Alface</option>
+                                <option value="tomate">🍅 Tomate</option>
+                                <option value="banana">🍌 Banana</option>
+                                <!-- Itens customizados serão adicionados aqui -->
+                            </select>
+                            <input type="number" id="metaQuantidade" placeholder="Quantidade" required>
+                            <input type="date" id="metaData" required>
+                            <label class="file-upload">
+                                <input type="file" id="metaPrint" accept="image/*" required>
+                                <span>📸 Anexar Print da Meta</span>
+                            </label>
+                            <button type="submit">Enviar Meta</button>
+                        </form>
+                    </div>
+                    <div class="metas-list">
+                        <h3>Metas Registradas</h3>
+                        <div id="metasLista"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Estoque -->
+            <section id="estoque" class="section">
+                <h2>Controle de Estoque</h2>
+                <div class="estoque-container">
+                    <div class="estoque-form">
+                        <h3>Entrada/Saída de Itens</h3>
+                        <form id="estoqueForm">
+                            <select id="estoqueTipo" required>
+                                <option value="entrada">📥 Entrada</option>
+                                <option value="saida">📤 Saída</option>
+                            </select>
+                            <select id="estoqueItem" required>
+                                <option value="carne">🥩 Carne</option>
+                                <option value="alface">🥬 Alface</option>
+                                <option value="tomate">🍅 Tomate</option>
+                                <option value="banana">🍌 Banana</option>
+                            </select>
+                            <input type="number" id="estoqueQuantidade" placeholder="Quantidade" required>
+                            <textarea id="estoqueObservacao" placeholder="Observação"></textarea>
+                            <button type="submit">Registrar Movimentação</button>
+                        </form>
+                    </div>
+                    <div class="estoque-list">
+                        <h3>Estoque Atual</h3>
+                        <div id="estoqueAtual"></div>
+                        <h3>Histórico de Movimentações</h3>
+                        <div id="estoqueHistorico"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Vendas -->
+            <section id="vendas" class="section">
+                <h2>Controle de Vendas</h2>
+                <div class="vendas-container">
+                    <div class="venda-form">
+                        <h3>Registrar Venda</h3>
+                        <form id="vendaForm">
+                            <input type="text" id="vendaCliente" placeholder="Nome do Cliente" required>
+                            <select id="vendaItem" required>
+                                <option value="burger">🍔 Burger</option>
+                                <option value="combo">🍟 Combo</option>
+                                <option value="bebida">🥤 Bebida</option>
+                                <option value="sobremesa">🍨 Sobremesa</option>
+                            </select>
+                            <input type="number" id="vendaQuantidade" placeholder="Quantidade" required>
+                            <input type="number" id="vendaValor" placeholder="Valor Total (R$)" step="0.01" required>
+                            <button type="submit">Registrar Venda</button>
+                        </form>
+                    </div>
+                    <div class="vendas-list">
+                        <h3>Vendas Recentes</h3>
+                        <div id="vendasRecentes"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Avisos -->
+            <section id="avisos" class="section">
+                <h2>Quadro de Avisos</h2>
+                <div class="avisos-container">
+                    <div class="aviso-form" id="avisoFormSection">
+                        <h3>Novo Aviso</h3>
+                        <form id="avisoForm">
+                            <input type="text" id="avisoTitulo" placeholder="Título" required>
+                            <textarea id="avisoMensagem" placeholder="Mensagem" required></textarea>
+                            <select id="avisoPrioridade">
+                                <option value="normal">Normal</option>
+                                <option value="importante">Importante</option>
+                                <option value="urgente">Urgente</option>
+                            </select>
+                            <button type="submit">Publicar Aviso</button>
+                        </form>
+                    </div>
+                    <div class="avisos-list">
+                        <h3>Avisos</h3>
+                        <div id="avisosLista"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Funcionários -->
+            <section id="funcionarios" class="section">
+                <h2>Gestão de Funcionários</h2>
+                <div class="funcionarios-container">
+                    <div class="funcionario-form">
+                        <h3>Adicionar Funcionário</h3>
+                        <form id="funcionarioForm">
+                            <input type="text" id="funcionarioNome" placeholder="Nome" required>
+                            <input type="email" id="funcionarioEmail" placeholder="Email" required>
+                            <select id="funcionarioCargo" required>
+                                <option value="estagiario">Estagiário</option>
+                                <option value="membro">Membro</option>
+                                <option value="supervisor">Supervisor</option>
+                                <option value="gerente">Gerente</option>
+                                <option value="dono">Dono</option>
+                                <option value="admin">Administrador</option>
+                            </select>
+                            <button type="submit">Adicionar Funcionário</button>
+                        </form>
+                    </div>
+                    <div class="funcionarios-list">
+                        <h3>Funcionários</h3>
+                        <div id="funcionariosLista"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Expediente -->
+            <section id="expediente" class="section">
+                <h2>Controle de Expediente</h2>
+                <div class="expediente-container">
+                    <div class="expediente-control">
+                        <h3>Status do Restaurante</h3>
+                        <div id="expedienteStatus">
+                            <p>Restaurante: <span id="restauranteStatus">Fechado</span></p>
+                            <p>Tempo aberto hoje: <span id="tempoAberto">0h 0min</span></p>
+                        </div>
+                        <button id="toggleExpediente" onclick="toggleExpediente()">Abrir Restaurante</button>
+                    </div>
+                    <div class="expediente-historico">
+                        <h3>Histórico de Expediente</h3>
+                        <div id="expedienteHistorico"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Administração -->
+            <section id="admin" class="section">
+                <h2>Painel Administrativo</h2>
+                <div class="admin-container">
+                    <div class="admin-users">
+                        <h3>Gerenciar Usuários</h3>
+                        <div id="adminUsersList"></div>
+                    </div>
+                    <div class="admin-items">
+                        <h3>Gerenciar Itens</h3>
+                        <form id="itemForm">
+                            <input type="text" id="itemNome" placeholder="Nome do Item" required>
+                            <input type="text" id="itemEmoji" placeholder="Emoji (opcional)">
+                            <button type="submit">Adicionar Item</button>
+                        </form>
+                        <div id="adminItemsList"></div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script src="js/config.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/dashboard.js"></script>
+    <script src="js/metas.js"></script>
+    <script src="js/estoque.js"></script>
+    <script src="js/vendas.js"></script>
+    <script src="js/avisos.js"></script>
+</body>
+</html>
