@@ -3,8 +3,10 @@ CREATE TABLE funcionarios (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
     nome VARCHAR(255) NOT NULL,
     email VARCHAR(255) UNIQUE NOT NULL,
-    cargo VARCHAR(50) NOT NULL CHECK (cargo IN ('estagiario', 'membro', 'supervisor', 'gerente', 'dono', 'admin')),
-    status VARCHAR(20) DEFAULT 'ativo',
+    cargo VARCHAR(50) NOT NULL DEFAULT 'estagiario' 
+        CHECK (cargo IN ('estagiario', 'membro', 'supervisor', 'gerente', 'dono', 'admin')),
+    status VARCHAR(20) NOT NULL DEFAULT 'pendente' 
+        CHECK (status IN ('pendente', 'ativo', 'rejeitado', 'inativo')),
     created_at TIMESTAMP DEFAULT NOW()
 );
 
@@ -24,7 +26,7 @@ CREATE TABLE metas (
 -- Tabela de Estoque
 CREATE TABLE estoque (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-    item VARCHAR(100) NOT NULL UNIQUE,
+    item VARCHAR(255) NOT NULL UNIQUE,
     quantidade INTEGER NOT NULL DEFAULT 0,
     unidade VARCHAR(20) DEFAULT 'un',
     updated_at TIMESTAMP DEFAULT NOW()
@@ -34,7 +36,7 @@ CREATE TABLE estoque (
 CREATE TABLE movimentacoes_estoque (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
     tipo VARCHAR(20) NOT NULL CHECK (tipo IN ('entrada', 'saida')),
-    item VARCHAR(100) NOT NULL,
+    item VARCHAR(255) NOT NULL,
     quantidade INTEGER NOT NULL,
     observacao TEXT,
     usuario VARCHAR(255),
@@ -45,7 +47,7 @@ CREATE TABLE movimentacoes_estoque (
 CREATE TABLE vendas (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
     cliente VARCHAR(255) NOT NULL,
-    item VARCHAR(100) NOT NULL,
+    item VARCHAR(255) NOT NULL,
     quantidade INTEGER NOT NULL,
     valor_total DECIMAL(10,2) NOT NULL,
     vendedor VARCHAR(255),
@@ -58,7 +60,8 @@ CREATE TABLE avisos (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
     titulo VARCHAR(255) NOT NULL,
     mensagem TEXT NOT NULL,
-    prioridade VARCHAR(20) DEFAULT 'normal',
+    prioridade VARCHAR(20) DEFAULT 'normal' 
+        CHECK (prioridade IN ('normal', 'importante', 'urgente')),
     usuario VARCHAR(255),
     created_at TIMESTAMP DEFAULT NOW()
 );
@@ -81,66 +84,69 @@ CREATE TABLE expediente (
     duracao VARCHAR(50)
 );
 
--- Índices para melhor performance
+-- Índices
 CREATE INDEX idx_funcionarios_email ON funcionarios(email);
+CREATE INDEX idx_funcionarios_status ON funcionarios(status);
 CREATE INDEX idx_metas_data ON metas(data);
 CREATE INDEX idx_vendas_created ON vendas(created_at);
 CREATE INDEX idx_movimentacoes_created ON movimentacoes_estoque(created_at);
+CREATE INDEX idx_avisos_created ON avisos(created_at);
 
 -- Inserir dados iniciais
-INSERT INTO funcionarios (nome, email, cargo) VALUES
-('Administrador', 'admin@burgershot.com', 'admin'),
-('Gerente', 'gerente@burgershot.com', 'gerente'),
-('Supervisor', 'supervisor@burgershot.com', 'supervisor');
+INSERT INTO funcionarios (nome, email, cargo, status) VALUES
+('Administrador', 'admin@burgershot.com', 'admin', 'ativo'),
+('Gerente', 'gerente@burgershot.com', 'gerente', 'ativo'),
+('Dono', 'dono@burgershot.com', 'dono', 'ativo');
 
+-- Inserir itens iniciais
 INSERT INTO estoque (item, quantidade) VALUES
-('carne', 100),
-('alface', 50),
-('tomate', 75),
-('banana', 60);
+('🥩 Carne', 100),
+('🥬 Alface', 50),
+('🍅 Tomate', 75),
+('🍌 Banana', 60),
+('🍔 Pão', 80),
+('🧀 Queijo', 40),
+('🥤 Refrigerante', 120),
+('💧 Água', 100);
 
--- Políticas de segurança (RLS)
+-- Habilitar RLS (Row Level Security)
 ALTER TABLE funcionarios ENABLE ROW LEVEL SECURITY;
 ALTER TABLE metas ENABLE ROW LEVEL SECURITY;
 ALTER TABLE estoque ENABLE ROW LEVEL SECURITY;
+ALTER TABLE movimentacoes_estoque ENABLE ROW LEVEL SECURITY;
 ALTER TABLE vendas ENABLE ROW LEVEL SECURITY;
 ALTER TABLE avisos ENABLE ROW LEVEL SECURITY;
+ALTER TABLE atividades ENABLE ROW LEVEL SECURITY;
+ALTER TABLE expediente ENABLE ROW LEVEL SECURITY;
 
--- Políticas para funcionários
-CREATE POLICY "Funcionários podem ver outros funcionários" ON funcionarios
+-- Políticas para permitir acesso ao site
+CREATE POLICY "Permitir leitura de funcionarios" ON funcionarios
     FOR SELECT USING (true);
 
-CREATE POLICY "Admins podem gerenciar funcionários" ON funcionarios
-    FOR ALL USING (
-        EXISTS (
-            SELECT 1 FROM funcionarios f 
-            WHERE f.id = auth.uid() 
-            AND f.cargo = 'admin'
-        )
-    );
+CREATE POLICY "Permitir inserção de funcionarios" ON funcionarios
+    FOR INSERT WITH CHECK (true);
 
--- Políticas para metas
-CREATE POLICY "Todos podem ver metas" ON metas
-    FOR SELECT USING (true);
+CREATE POLICY "Permitir atualização de funcionarios" ON funcionarios
+    FOR UPDATE USING (true);
 
-CREATE POLICY "Gerentes e acima podem criar metas" ON metas
-    FOR INSERT WITH CHECK (
-        EXISTS (
-            SELECT 1 FROM funcionarios f 
-            WHERE f.id = auth.uid() 
-            AND f.cargo IN ('gerente', 'dono', 'admin')
-        )
-    );
+-- Políticas para outras tabelas
+CREATE POLICY "Permitir todas operações em metas" ON metas
+    FOR ALL USING (true);
 
--- Políticas para estoque
-CREATE POLICY "Todos podem ver estoque" ON estoque
-    FOR SELECT USING (true);
+CREATE POLICY "Permitir todas operações em estoque" ON estoque
+    FOR ALL USING (true);
 
-CREATE POLICY "Membros e acima podem gerenciar estoque" ON estoque
-    FOR ALL USING (
-        EXISTS (
-            SELECT 1 FROM funcionarios f 
-            WHERE f.id = auth.uid() 
-            AND f.cargo IN ('membro', 'supervisor', 'gerente', 'dono', 'admin')
-        )
-    );
+CREATE POLICY "Permitir todas operações em movimentacoes" ON movimentacoes_estoque
+    FOR ALL USING (true);
+
+CREATE POLICY "Permitir todas operações em vendas" ON vendas
+    FOR ALL USING (true);
+
+CREATE POLICY "Permitir todas operações em avisos" ON avisos
+    FOR ALL USING (true);
+
+CREATE POLICY "Permitir todas operações em atividades" ON atividades
+    FOR ALL USING (true);
+
+CREATE POLICY "Permitir todas operações em expediente" ON expediente
+    FOR ALL USING (true);
