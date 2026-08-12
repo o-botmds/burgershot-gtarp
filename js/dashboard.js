@@ -1,77 +1,171 @@
-async function initializeDashboard() {
+// Dashboard para Funcionários
+async function loadFuncionarioDashboard() {
+    const dashboardContent = document.getElementById('dashboardContent');
+    
+    dashboardContent.innerHTML = `
+        <div class="stats-grid">
+            <div class="stat-card">
+                <h3>Minhas Vendas Hoje</h3>
+                <p id="minhasVendasHoje">R$ 0,00</p>
+            </div>
+            <div class="stat-card">
+                <h3>Total de Vendas Hoje</h3>
+                <p id="totalVendasHoje">R$ 0,00</p>
+            </div>
+            <div class="stat-card">
+                <h3>Meu Turno</h3>
+                <p id="meuTurno">Não iniciado</p>
+            </div>
+        </div>
+        
+        <div class="card">
+            <h3>Meus Últimos Registros</h3>
+            <div id="meusRegistros"></div>
+        </div>
+        
+        <div class="card">
+            <h3>Avisos Importantes</h3>
+            <div id="avisosImportantes"></div>
+        </div>
+    `;
+    
     await Promise.all([
-        loadVendasHoje(),
-        loadMetaDia(),
-        loadEstoqueResumo(),
-        loadFuncionariosAtivos(),
-        loadRecentActivity()
+        loadMinhasVendasHoje(),
+        loadTotalVendasHoje(),
+        loadMeuTurno(),
+        loadMeusRegistros(),
+        loadAvisosImportantes()
     ]);
 }
 
-async function loadVendasHoje() {
-    const today = new Date().toISOString().split('T')[0];
-    const { data: vendas, error } = await supabase
-        .from('vendas')
-        .select('valor_total')
-        .gte('created_at', today);
+// Dashboard para Gerentes e Donos
+async function loadGerenteDashboard() {
+    const dashboardContent = document.getElementById('dashboardContent');
     
-    if (vendas) {
-        const total = vendas.reduce((sum, venda) => sum + parseFloat(venda.valor_total), 0);
-        document.getElementById('vendasHoje').textContent = `R$ ${total.toFixed(2)}`;
-    }
-}
-
-async function loadMetaDia() {
-    const today = new Date().toISOString().split('T')[0];
-    const { data: meta, error } = await supabase
-        .from('metas')
-        .select('*')
-        .eq('data', today)
-        .single();
-    
-    if (meta) {
-        document.getElementById('metaDia').textContent = `${meta.quantidade} ${meta.tipo}`;
-    } else {
-        document.getElementById('metaDia').textContent = 'Nenhuma meta definida';
-    }
-}
-
-async function loadEstoqueResumo() {
-    const { data: items, error } = await supabase
-        .from('estoque')
-        .select('quantidade');
-    
-    if (items) {
-        const total = items.reduce((sum, item) => sum + item.quantidade, 0);
-        document.getElementById('itensEstoque').textContent = total;
-    }
-}
-
-async function loadFuncionariosAtivos() {
-    const { data: funcionarios, error } = await supabase
-        .from('funcionarios')
-        .select('id')
-        .eq('status', 'ativo');
-    
-    if (funcionarios) {
-        document.getElementById('funcionariosAtivos').textContent = funcionarios.length;
-    }
-}
-
-async function loadRecentActivity() {
-    const { data: recentes, error } = await supabase
-        .from('atividades')
-        .select('*')
-        .order('created_at', { ascending: false })
-        .limit(10);
-    
-    if (recentes) {
-        const container = document.getElementById('recentActivity');
-        container.innerHTML = recentes.map(activity => `
-            <div class="list-item">
-                <strong>${activity.usuario}</strong> - ${activity.acao}
-                <small>${new Date(activity.created_at).toLocaleString()}</small>
+    dashboardContent.innerHTML = `
+        <div class="stats-grid">
+            <div class="stat-card">
+                <h3>Vendas Hoje</h3>
+                <p id="vendasHoje">R$ 0,00</p>
             </div>
-        `).join('');
-    }
+            <div class="stat-card">
+                <h3>Meta do Dia</h3>
+                <p id="metaDia">Não definida</p>
+            </div>
+            <div class="stat-card">
+                <h3>Funcionários Ativos</h3>
+                <p id="funcionariosAtivos">0</p>
+            </div>
+            <div class="stat-card">
+                <h3>Itens no Estoque</h3>
+                <p id="itensEstoque">0</p>
+            </div>
+        </div>
+        
+        <div class="grid-2">
+            <div class="card">
+                <h3>Vendas por Funcionário</h3>
+                <div id="vendasPorFuncionario"></div>
+            </div>
+            
+            <div class="card">
+                <h3>Status do Estoque</h3>
+                <div id="statusEstoque"></div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <h3>Metas em Andamento</h3>
+            <div id="metasAndamento"></div>
+        </div>
+        
+        <div class="card">
+            <h3>Expediente</h3>
+            <div id="expedienteResumo"></div>
+        </div>
+        
+        <div class="card">
+            <h3>Avisos Recentes</h3>
+            <div id="avisosRecentes"></div>
+        </div>
+    `;
+    
+    await Promise.all([
+        loadVendasHoje(),
+        loadMetaDia(),
+        loadFuncionariosAtivos(),
+        loadItensEstoque(),
+        loadVendasPorFuncionario(),
+        loadStatusEstoque(),
+        loadMetasAndamento(),
+        loadExpedienteResumo(),
+        loadAvisosRecentes()
+    ]);
 }
+
+// Dashboard para Admin
+async function loadAdminDashboard() {
+    const dashboardContent = document.getElementById('dashboardContent');
+    
+    dashboardContent.innerHTML = `
+        <div class="stats-grid">
+            <div class="stat-card">
+                <h3>Vendas Hoje</h3>
+                <p id="vendasHoje">R$ 0,00</p>
+            </div>
+            <div class="stat-card">
+                <h3>Usuários Pendentes</h3>
+                <p id="usuariosPendentes">0</p>
+            </div>
+            <div class="stat-card">
+                <h3>Total de Funcionários</h3>
+                <p id="totalFuncionarios">0</p>
+            </div>
+            <div class="stat-card">
+                <h3>Acessos Hoje</h3>
+                <p id="acessosHoje">0</p>
+            </div>
+        </div>
+        
+        <div class="grid-2">
+            <div class="card">
+                <h3>Resumo de Vendas</h3>
+                <div id="resumoVendas"></div>
+            </div>
+            
+            <div class="card">
+                <h3>Distribuição de Cargos</h3>
+                <div id="distribuicaoCargos"></div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <h3>Atividades Recentes do Sistema</h3>
+            <div id="atividadesSistema"></div>
+        </div>
+        
+        <div class="card">
+            <h3>Status do Sistema</h3>
+            <div id="statusSistema"></div>
+        </div>
+        
+        <div class="card">
+            <h3>Estatísticas Gerais</h3>
+            <div id="estatisticasGerais"></div>
+        </div>
+    `;
+    
+    await Promise.all([
+        loadVendasHoje(),
+        loadUsuariosPendentes(),
+        loadTotalFuncionarios(),
+        loadAcessosHoje(),
+        loadResumoVendas(),
+        loadDistribuicaoCargos(),
+        loadAtividadesSistema(),
+        loadStatusSistema(),
+        loadEstatisticasGerais()
+    ]);
+}
+
+// Funções de car

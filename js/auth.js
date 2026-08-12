@@ -1,8 +1,23 @@
 let currentUser = null;
 
+// Funções de navegação do formulário
+function showRegisterForm() {
+    document.getElementById('loginForm').style.display = 'none';
+    document.getElementById('registerForm').style.display = 'block';
+    document.getElementById('errorMessage').style.display = 'none';
+    document.getElementById('successMessage').style.display = 'none';
+}
+
+function hideRegisterForm() {
+    document.getElementById('loginForm').style.display = 'block';
+    document.getElementById('registerForm').style.display = 'none';
+    document.getElementById('errorMessage').style.display = 'none';
+    document.getElementById('successMessage').style.display = 'none';
+}
+
+// Função de Login
 async function handleLogin(email) {
     try {
-        // Verificar se o email está aprovado
         const { data: user, error } = await supabase
             .from('funcionarios')
             .select('*')
@@ -10,7 +25,17 @@ async function handleLogin(email) {
             .single();
 
         if (error || !user) {
-            showError('Email não aprovado. Contate um gerente.');
+            showError('Email não encontrado. Solicite acesso ou contate um administrador.');
+            return;
+        }
+
+        if (user.status === 'pendente') {
+            showError('Seu cadastro está pendente de aprovação.');
+            return;
+        }
+
+        if (user.status === 'rejeitado') {
+            showError('Seu cadastro foi rejeitado.');
             return;
         }
 
@@ -22,29 +47,57 @@ async function handleLogin(email) {
         currentUser = user;
         localStorage.setItem('burgerShotUser', JSON.stringify(user));
         
-        // Mostrar aplicação principal
         document.getElementById('loginScreen').style.display = 'none';
         document.getElementById('mainApp').style.display = 'flex';
         
-        // Configurar permissões
-        setupPermissions(user);
-        initializeDashboard();
+        setupUserInterface(user);
         
     } catch (err) {
-        showError('Erro ao fazer login. Tente novamente.');
+        showError('Erro ao fazer login.');
         console.error(err);
     }
 }
 
-function setupPermissions(user) {
-    const canManageMetas = ['gerente', 'dono', 'admin'].includes(user.cargo);
-    const canManageEstoque = ['membro', 'supervisor', 'gerente', 'dono', 'admin'].includes(user.cargo);
-    const canManageFuncionarios = ['gerente', 'dono', 'admin'].includes(user.cargo);
-    const canSeeAdmin = user.cargo === 'admin';
-    
-    // Mostrar/esconder seções baseado nas permissões
-    document.getElementById('metaFormSection').style.display = canManageMetas ? 'block' : 'none';
-    document.getElementById('adminMenu').style.display = canSeeAdmin ? 'block' : 'none';
+// Função de Registro
+async function handleRegister(nome, email) {
+    try {
+        const { data: existingUser } = await supabase
+            .from('funcionarios')
+            .select('id')
+            .eq('email', email)
+            .single();
+
+        if (existingUser) {
+            showError('Este email já está cadastrado.');
+            return;
+        }
+
+        const { error } = await supabase
+            .from('funcionarios')
+            .insert([
+                {
+                    nome: nome,
+                    email: email,
+                    cargo: CONFIG.defaultCargo,
+                    status: 'pendente'
+                }
+            ]);
+
+        if (error) throw error;
+
+        showSuccess('Cadastro solicitado! Aguarde aprovação.');
+        
+        document.getElementById('registerNome').value = '';
+        document.getElementById('registerEmail').value = '';
+        
+        setTimeout(() => {
+            hideRegisterForm();
+        }, 2000);
+
+    } catch (err) {
+        showError('Erro ao solicitar cadastro.');
+        console.error(err);
+    }
 }
 
 function logout() {
@@ -56,11 +109,24 @@ function logout() {
 
 function showError(message) {
     const errorDiv = document.getElementById('errorMessage');
+    const successDiv = document.getElementById('successMessage');
     errorDiv.textContent = message;
     errorDiv.style.display = 'block';
+    successDiv.style.display = 'none';
     setTimeout(() => {
         errorDiv.style.display = 'none';
-    }, 3000);
+    }, 5000);
+}
+
+function showSuccess(message) {
+    const errorDiv = document.getElementById('errorMessage');
+    const successDiv = document.getElementById('successMessage');
+    successDiv.textContent = message;
+    successDiv.style.display = 'block';
+    errorDiv.style.display = 'none';
+    setTimeout(() => {
+        successDiv.style.display = 'none';
+    }, 5000);
 }
 
 // Event Listeners
@@ -70,12 +136,18 @@ document.getElementById('loginForm').addEventListener('submit', (e) => {
     handleLogin(email);
 });
 
+document.getElementById('registerForm').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const nome = document.getElementById('registerNome').value;
+    const email = document.getElementById('registerEmail').value;
+    handleRegister(nome, email);
+});
+
 // Verificar se usuário já está logado
 const savedUser = localStorage.getItem('burgerShotUser');
 if (savedUser) {
     currentUser = JSON.parse(savedUser);
     document.getElementById('loginScreen').style.display = 'none';
     document.getElementById('mainApp').style.display = 'flex';
-    setupPermissions(currentUser);
-    initializeDashboard();
+    setupUserInterface(currentUser);
 }
