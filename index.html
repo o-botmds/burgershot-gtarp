@@ -21,43 +21,72 @@
             <div id="errorMessage" class="error-message" style="display: none;"></div>
             <div id="successMessage" class="success-message" style="display: none;"></div>
             
-            <!-- Login -->
-            <form id="loginForm">
-                <h2>Login</h2>
-                <input type="email" id="email" placeholder="Seu email" required>
-                <button type="submit">Entrar</button>
-            </form>
-            
-            <!-- Separador -->
-            <div class="separator">
-                <span>ou</span>
+            <!-- Tabs de Login/Registro -->
+            <div class="auth-tabs">
+                <button class="auth-tab active" id="loginTab" onclick="showAuthTab('login')">
+                    🔐 Login
+                </button>
+                <button class="auth-tab" id="registerTab" onclick="showAuthTab('register')">
+                    📝 Criar Conta
+                </button>
             </div>
             
-            <!-- Botão para criar conta -->
-            <button onclick="showRegisterForm()" class="register-btn">
-                Criar Nova Conta
-            </button>
-            
-            <!-- Formulário de Registro -->
-            <form id="registerForm" style="display: none;">
-                <h2>Registro de Funcionário</h2>
-                <input type="text" id="registerNome" placeholder="Seu nome no RP" required>
-                <input type="email" id="registerEmail" placeholder="Seu email" required>
-                <button type="submit">Solicitar Cadastro</button>
-                <button type="button" onclick="hideRegisterForm()" class="back-btn">
-                    Voltar ao Login
-                </button>
+            <!-- Formulário de Login -->
+            <form id="loginForm" class="auth-form">
+                <h2>Entrar no Sistema</h2>
+                
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" id="loginEmail" placeholder="seu@email.com" required>
+                </div>
+                
+                <div class="form-group">
+                    <label>Senha</label>
+                    <input type="password" id="loginPassword" placeholder="Sua senha" required>
+                </div>
+                
+                <button type="submit" class="btn-primary">Entrar</button>
+                
+                <p class="info-text">
+                    Esqueceu a senha? Contate um administrador
+                </p>
             </form>
             
-            <p class="info-text">
-                Novas contas precisam ser aprovadas por um administrador
-            </p>
+            <!-- Formulário de Registro -->
+            <form id="registerForm" class="auth-form" style="display: none;">
+                <h2>Criar Nova Conta</h2>
+                
+                <div class="form-group">
+                    <label>Nome no RP</label>
+                    <input type="text" id="registerNome" placeholder="Seu nome no servidor" required>
+                </div>
+                
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" id="registerEmail" placeholder="seu@email.com" required>
+                </div>
+                
+                <div class="form-group">
+                    <label>Senha</label>
+                    <input type="password" id="registerPassword" placeholder="Crie uma senha" required minlength="6">
+                </div>
+                
+                <div class="form-group">
+                    <label>Confirmar Senha</label>
+                    <input type="password" id="registerConfirmPassword" placeholder="Confirme a senha" required minlength="6">
+                </div>
+                
+                <button type="submit" class="btn-primary">Solicitar Cadastro</button>
+                
+                <p class="info-text">
+                    Sua conta será analisada por um administrador antes de ser liberada
+                </p>
+            </form>
         </div>
     </div>
 
     <!-- Aplicação Principal -->
     <div id="mainApp" class="main-app" style="display: none;">
-        <!-- Sidebar -->
         <nav class="sidebar">
             <div class="sidebar-header">
                 <h2>🍔 BurgerShot</h2>
@@ -79,7 +108,6 @@
             </ul>
         </nav>
 
-        <!-- Conteúdo -->
         <main class="content">
             <!-- Dashboard -->
             <section id="dashboard" class="section active">
